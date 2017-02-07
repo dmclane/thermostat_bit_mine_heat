@@ -1,0 +1,16 @@
+
+https://github.com/padelt/temper-python
+download zip
+
+if needed:
+sudo apt-get install python-setuptools
+
+run sudo python setup.py install
+installs temper-poll in /usr/local/bin
+
+copy 99-tempsensor.rules (in ../etc) to /etc/udev/rules.d
+sudo cp 99-tempsensor.rules /etc/udev/rules.d/
+
+reboot
+
+
