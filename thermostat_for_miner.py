@@ -11,7 +11,7 @@ TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
 TEMP_CAL = -10.0
 
-miner_1 = {"ip":"192.168.17.17", "user":"root", "pass":"aestas"}
+Spondoolies_miner = {"ip":"192.168.17.17", "user":"root", "pass":"toor"}
 
 ##############################################################################
 #                                                                            #
@@ -62,7 +62,7 @@ class Dummy_Miner:
 ##############################################################################
 #                                                                            #
 #                                                                            #
-#                                                                            #
+#                 Temper_Temp_Sensor class                                   #
 #                                                                            #
 #                                                                            #
 ##############################################################################
@@ -78,15 +78,22 @@ class Temper_Temp_Sensor:
 
         return n
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#                    spond_miner(...)                                        #
+#                                                                            #
+#                                                                            #
+##############################################################################
 def spond_miner(operation, debug_flag=False):
 
     result = 0
 
     try:
-        child = pexpect.spawn('ssh root@192.168.17.17')
+        child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
         if debug_flag: child.logfile = sys.stdout
         child.expect('password: ')
-        child.sendline('aestas')
+        child.sendline(Spondoolies_miner["pass"])
         child.expect('SP31-5# ')
 
         if operation == "status":
@@ -112,6 +119,13 @@ def spond_miner(operation, debug_flag=False):
         logger.error("spond_miner exception", exc_info=True)
     return result
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#             Spondoolies_Miner class                                        #
+#                                                                            #
+#                                                                            #
+##############################################################################
 class Spondoolies_Miner:
 
     def status(self):
@@ -123,6 +137,13 @@ class Spondoolies_Miner:
     def stop(self):
         return spond_miner("stop")
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#               Thermostat class                                             #
+#                                                                            #
+#                                                                            #
+##############################################################################
 class Thermostat:
 
     def __init__(self, miner):
@@ -150,6 +171,13 @@ class Thermostat:
             self.calc_interval()
             logger.info(str(temp) + ",  on, " + self.calc_interval())
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#               main(...)                                                    #
+#                                                                            #
+#                                                                            #
+##############################################################################
 def main(miner, temp_sensor):
 
     thermostat = Thermostat(miner)
@@ -162,6 +190,13 @@ def main(miner, temp_sensor):
                          # so wait at least that long.
 
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#          Entry point                                                       #
+#                                                                            #
+#                                                                            #
+##############################################################################
 if __name__ == "__main__":
 
 
@@ -180,6 +215,9 @@ if __name__ == "__main__":
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)
 
+    #
+    # default action if no arguments passed
+    #
     if len(sys.argv) == 1:  # no arguments passed
 
         try:
@@ -192,14 +230,18 @@ if __name__ == "__main__":
             logger.error("main exception", exc_info=True)
 
         logger.info('quitting ...')
-
+    #
+    #  "test" was passed as an argument.  Run with test classes.
+    #
     elif sys.argv[1] == "test":
 
         try:
             main(Dummy_Miner(), Dummy_Temp_Sensor())
         except:
             pass
-        
+    #
+    #  other test routines.
+    #    
     else:
 
         miner = Spondoolies_Miner()
