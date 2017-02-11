@@ -13,18 +13,59 @@ TEMP_CAL = -10.0
 
 miner_1 = {"ip":"192.168.17.17", "user":"root", "pass":"aestas"}
 
+##############################################################################
+#                                                                            #
+#                                                                            #
+#    Dummy classes used for testing                                          #
+#                                                                            #
+#                                                                            #
+##############################################################################
+
+test_temps = [ 69,    70,   71,   70,    69,    68,   67,   68,   71,   69,    60]
+test_stats = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
+
 class Dummy_Temp_Sensor:
 
     def __init__(self):
         self.generator = self.temp_gen()
 
     def temp_gen(self):
-        self.temps = [69, 70, 71, 70, 69, 68, 67, 68, 71, 69, 60]
+#        self.temps = [69, 70, 71, 70, 69, 68, 67, 68, 71, 69, 60]
+        self.temps = test_temps
         for i in self.temps:
             yield i
 
     def get_temp(self):
         return self.generator.next()
+
+class Dummy_Miner:
+
+    def __init__(self):
+        self.generator = self.stat_gen()
+
+    def stat_gen(self):
+#        stat = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
+        stat = test_stats
+        for i in stat:
+            yield i
+
+    def status(self):
+        logger.info("dummy_miner.status()")
+        return self.generator.next()
+
+    def start(self):
+        logger.info("dummy_miner.start()")
+
+    def stop(self):
+        logger.info("dummy_miner.stop()")
+
+##############################################################################
+#                                                                            #
+#                                                                            #
+#                                                                            #
+#                                                                            #
+#                                                                            #
+##############################################################################
 
 class Temper_Temp_Sensor:
     def get_temp(self):
@@ -36,7 +77,6 @@ class Temper_Temp_Sensor:
             n = "error"
 
         return n
-
 
 def spond_miner(operation, debug_flag=False):
 
@@ -72,26 +112,6 @@ def spond_miner(operation, debug_flag=False):
         logger.error("spond_miner exception", exc_info=True)
     return result
 
-class Dummy_Miner:
-
-    def __init__(self):
-        self.generator = self.stat_gen()
-
-    def stat_gen(self):
-        stat = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
-        for i in stat:
-            yield i
-
-    def status(self):
-        logger.info("dummy_miner.status()")
-        return self.generator.next()
-
-    def start(self):
-        logger.info("dummy_miner.start()")
-
-    def stop(self):
-        logger.info("dummy_miner.stop()")
-
 class Spondoolies_Miner:
 
     def status(self):
@@ -113,7 +133,7 @@ class Thermostat:
         now = datetime.datetime.now()
         interval = now - self.last_event_time
         self.last_event_time = now
-        logger.info("interval = " + str(interval))
+        return str(interval).split('.')[0]
 
 
     def check(self, temp):
@@ -123,12 +143,12 @@ class Thermostat:
         if status == "on" and temp > TURN_OFF_TEMP:
             self.miner.stop()
             self.calc_interval()
-            logger.info("temp = " + str(temp) + ", turning off " )
+            logger.info(str(temp) + ", off, " + self.calc_interval())
 
         if status == "off" and temp < TURN_ON_TEMP:
             self.miner.start()
             self.calc_interval()
-            logger.info("temp = " + str(temp) + ", turning on" )
+            logger.info(str(temp) + ",  on, " + self.calc_interval())
 
 def main(miner, temp_sensor):
 
@@ -148,7 +168,7 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
 
-    formatter = logging.Formatter('%(levelname)s, %(message)s')
+    formatter = logging.Formatter('%(levelname)s, %(asctime)s, %(message)s', datefmt="%Y-%m-%d, %H:%M")
 
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
