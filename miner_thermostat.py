@@ -7,11 +7,60 @@ import logging
 import logging.handlers
 import datetime
 from local_config import *
-#from w1thermsensor import W1ThermSensor
 
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
-TEMP_CAL = -10.0
+TEMPER_TEMP_CAL = -10.0
+
+# these need to be defined before the next import
+
+##############################################################################
+#                                                                            #
+#                                                                            #
+#                 Temper_Temp_Sensor class                                   #
+#                                                                            #
+#                                                                            #
+##############################################################################
+
+class Temper_Temp_Sensor:
+    def get_temp(self):
+        try:
+            s = subprocess.check_output(["temper-poll", "-f"])
+            n = float(s) + TEMPER_TEMP_CAL
+        except:
+            logger.error('get_temp exception', exc_info=True)
+            n = "error"
+        return n
+
+##############################################################################
+#                                                                            #
+#                                                                            #
+#                     One Wire Temperature Sensor class                      #
+#                                                                            #
+#                                                                            #
+##############################################################################
+
+class W1_Temp_Sensor:
+
+    def __init__(self):
+        self.sensor = W1ThermSensor()
+
+    def get_temp(self):
+        try:
+            s = sensor.get_temperature(W1ThermSensor.DEGREES_F)
+            n = float(s) + TEMP_CAL
+        except:
+            logger.error('get_temp exception', exc_info=True)
+            n = "error"
+        return n
+
+# W1_Temp_Sensor and Temper_Temp_sensor are now defined
+try:
+    from w1thermsensor import W1ThermSensor
+    default_temp_sensor = W1_Temp_Sensor()
+except ImportError:
+    default_temp_sensor = Temper_Temp_Sensor()
+
 
 ##############################################################################
 #                                                                            #
@@ -21,6 +70,9 @@ TEMP_CAL = -10.0
 #                                                                            #
 ##############################################################################
 
+# if they haven't been changed, TURN_OFF_TEMP = 70.0, and TURN_ON_TEMP = 68.0
+# so result should be:
+#             off     off   on    off    off    off   on    on    off   off    on
 test_temps = [ 69,    70,   71,   70,    69,    68,   67,   68,   71,   69,    60]
 test_stats = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
 
@@ -28,8 +80,6 @@ class Dummy_Temp_Sensor:
 
     def __init__(self):
         self.generator = self.temp_gen()
-
-    def temp_gen(self):
         self.temps = test_temps
         for i in self.temps:
             yield i
@@ -56,45 +106,6 @@ class Dummy_Miner:
 
     def stop(self):
         logger.info("dummy_miner.stop()")
-
-##############################################################################
-#                                                                            #
-#                                                                            #
-#                 Temper_Temp_Sensor class                                   #
-#                                                                            #
-#                                                                            #
-##############################################################################
-
-class Temper_Temp_Sensor:
-    def get_temp(self):
-        try:
-            s = subprocess.check_output(["temper-poll", "-f"])
-            n = float(s) + TEMP_CAL
-        except:
-            logger.error('get_temp exception', exc_info=True)
-            n = "error"
-        return n
-
-##############################################################################
-#                                                                            #
-#                                                                            #
-#                     One Wire Temperature Sensor class                      #
-#                                                                            #
-#                                                                            #
-##############################################################################
-#class W1_Temp_Sensor:
-
-#    def __init__(self):
-#        self.sensor = W1ThermSensor()
-
-#    def get_temp(self):
-#        try:
-#            s = sensor.get_temperature(W1ThermSensor.DEGREES_F)
-#            n = float(s) + TEMP_CAL
-#        except:
-#            logger.error('get_temp exception', exc_info=True)
-#            n = "error"
-#        return n
 
 ##############################################################################
 #                                                                            #
@@ -238,7 +249,7 @@ if __name__ == "__main__":
 
         try:
             logger.info('Starting ...')
-            main(Spondoolies_Miner(), Temper_Temp_Sensor())
+            main(Spondoolies_Miner(), default_temp_sensor)
 
         except KeyboardInterrupt:
             pass
