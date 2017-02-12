@@ -54,7 +54,9 @@ class W1_Temp_Sensor:
             n = "error"
         return n
 
-# W1_Temp_Sensor and Temper_Temp_sensor are now defined
+# W1_Temp_Sensor and Temper_Temp_sensor are now defined.
+# Presense of One Wire module determines what sensor we're using.
+
 try:
     from w1thermsensor import W1ThermSensor
     default_temp_sensor = W1_Temp_Sensor()
@@ -72,9 +74,9 @@ except ImportError:
 
 # if they haven't been changed, TURN_OFF_TEMP = 70.0, and TURN_ON_TEMP = 68.0
 # so result should be:
-#             off     on    off   off    off    on    on    on    off   off    on
-test_temps = [ 69,    70,   71,   70,    69,    68,   67,   68,   71,   69,    60]
-test_stats = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
+#             off     on    off   off    off    on    on     on    off   off    on
+test_temps = [ 69,    70,   71,   70,    69,    68,   67,    68,   71,   69,    60]
+test_stats = ["off", "on", "on", "off", "off", "on", "off", "on", "on", "off", "off"]
 
 class Dummy_Temp_Sensor:
 
@@ -258,6 +260,7 @@ if __name__ == "__main__":
             logger.error("main exception", exc_info=True)
 
         logger.info('quitting ...')
+
     #
     #  "test" was passed as an argument.  Run with test classes.
     #
@@ -278,24 +281,24 @@ if __name__ == "__main__":
             print(miner.status())
 
         elif sys.argv[1] == "Status":
-            print(spond_miner("status", debug_flag=True))
+            print(miner("status", debug_flag=True))
 
         elif sys.argv[1] == "start":
             miner.start()
 
         elif sys.argv[1] == "Start":
-            spond_miner("start", debug_flag=True)
+            miner("start", debug_flag=True)
 
         elif sys.argv[1] == "stop":
             miner.stop()
 
         elif sys.argv[1] == "Stop":
-            spond_miner("stop", debug_flag=True)
+            miner("stop", debug_flag=True)
 
         elif sys.argv[1] == "temp":
-            print(Temper_Temp_Sensor().get_temp())
+            print(default_temp_sensor.get_temp())
 
-        elif sys.argv[1] == "Temp":
+        elif sys.argv[1] == "Temper":
             print(subprocess.check_output("temper-poll"))
 
 
