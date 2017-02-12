@@ -6,12 +6,12 @@ import pexpect
 import logging
 import logging.handlers
 import datetime
+from local_config import *
+#from w1thermsensor import W1ThermSensor
 
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
 TEMP_CAL = -10.0
-
-Spondoolies_miner = {"ip":"192.168.17.17", "user":"root", "pass":"toor"}
 
 ##############################################################################
 #                                                                            #
@@ -30,7 +30,6 @@ class Dummy_Temp_Sensor:
         self.generator = self.temp_gen()
 
     def temp_gen(self):
-#        self.temps = [69, 70, 71, 70, 69, 68, 67, 68, 71, 69, 60]
         self.temps = test_temps
         for i in self.temps:
             yield i
@@ -44,7 +43,6 @@ class Dummy_Miner:
         self.generator = self.stat_gen()
 
     def stat_gen(self):
-#        stat = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
         stat = test_stats
         for i in stat:
             yield i
@@ -75,8 +73,28 @@ class Temper_Temp_Sensor:
         except:
             logger.error('get_temp exception', exc_info=True)
             n = "error"
-
         return n
+
+##############################################################################
+#                                                                            #
+#                                                                            #
+#                     One Wire Temperature Sensor class                      #
+#                                                                            #
+#                                                                            #
+##############################################################################
+#class W1_Temp_Sensor:
+
+#    def __init__(self):
+#        self.sensor = W1ThermSensor()
+
+#    def get_temp(self):
+#        try:
+#            s = sensor.get_temperature(W1ThermSensor.DEGREES_F)
+#            n = float(s) + TEMP_CAL
+#        except:
+#            logger.error('get_temp exception', exc_info=True)
+#            n = "error"
+#        return n
 
 ##############################################################################
 #                                                                            #
@@ -163,12 +181,10 @@ class Thermostat:
 
         if status == "on" and temp > TURN_OFF_TEMP:
             self.miner.stop()
-            self.calc_interval()
             logger.info(str(temp) + ", off, " + self.calc_interval())
 
         if status == "off" and temp < TURN_ON_TEMP:
             self.miner.start()
-            self.calc_interval()
             logger.info(str(temp) + ",  on, " + self.calc_interval())
 
 ##############################################################################
