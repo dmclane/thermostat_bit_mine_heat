@@ -72,34 +72,35 @@ except ImportError:
 
 # if they haven't been changed, TURN_OFF_TEMP = 70.0, and TURN_ON_TEMP = 68.0
 # so result should be:
-#             off     off   on    off    off    off   on    on    off   off    on
+#             off     on    off   off    off    on    on    on    off   off    on
 test_temps = [ 69,    70,   71,   70,    69,    68,   67,   68,   71,   69,    60]
 test_stats = ["off", "on", "on", "off", "off", "on", "on", "on", "on", "off", "off"]
 
 class Dummy_Temp_Sensor:
 
     def __init__(self):
-        self.generator = self.temp_gen()
-        self.temps = test_temps
-        for i in self.temps:
+        self.generator = self.temp_generator(test_temps)
+
+    def temp_generator(self, temp_list):
+        for i in temp_list:
             yield i
 
     def get_temp(self):
-        return self.generator.next()
+        return next(self.generator)
 
 class Dummy_Miner:
 
     def __init__(self):
-        self.generator = self.stat_gen()
+        self.generator = self.stat_generator(test_stats)
 
-    def stat_gen(self):
-        stat = test_stats
-        for i in stat:
+    def stat_generator(self, stat_list):
+        for i in stat_list:
             yield i
 
     def status(self):
-        logger.info("dummy_miner.status()")
-        return self.generator.next()
+        stat = next(self.generator)
+        logger.info("dummy_miner.status() %s" % stat)
+        return stat
 
     def start(self):
         logger.info("dummy_miner.start()")
@@ -205,7 +206,7 @@ class Thermostat:
 #                                                                            #
 #                                                                            #
 ##############################################################################
-def main(miner, temp_sensor):
+def main(miner, temp_sensor, period):
 
     thermostat = Thermostat(miner)
 
@@ -213,8 +214,8 @@ def main(miner, temp_sensor):
         temp = temp_sensor.get_temp()
         if temp != "error":
             thermostat.check(temp)
-        time.sleep(60)   # seconds, miner takes at least 30 seconds to respond,
-                         # so wait at least that long.
+        time.sleep(period)   # seconds, miner takes at least 30 seconds to respond,
+                             # so wait at least that long.
 
 
 ##############################################################################
@@ -249,7 +250,7 @@ if __name__ == "__main__":
 
         try:
             logger.info('Starting ...')
-            main(Spondoolies_Miner(), default_temp_sensor)
+            main(Spondoolies_Miner(), default_temp_sensor, 60)
 
         except KeyboardInterrupt:
             pass
@@ -262,10 +263,10 @@ if __name__ == "__main__":
     #
     elif sys.argv[1] == "test":
 
-        try:
-            main(Dummy_Miner(), Dummy_Temp_Sensor())
-        except:
-            pass
+#        try:
+            main(Dummy_Miner(), Dummy_Temp_Sensor(), 1)
+#        except:
+#            pass
     #
     #  other test routines.
     #    
