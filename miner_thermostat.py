@@ -24,12 +24,12 @@ TEMPER_TEMP_CAL = -10.0
 
 class Temper_Temp_Sensor:
     def get_temp(self):
-        try:
+        # try:
             s = subprocess.check_output(["temper-poll", "-f"])
             n = float(s) + TEMPER_TEMP_CAL
-        except:
-            logger.error('get_temp exception', exc_info=True)
-            n = "error"
+        # except:
+        #     logger.error('get_temp exception', exc_info=True)
+        #     n = "error"
         return n
 
 ##############################################################################
@@ -46,12 +46,12 @@ class W1_Temp_Sensor:
         self.sensor = W1ThermSensor()
 
     def get_temp(self):
-        try:
+        # try:
             s = sensor.get_temperature(W1ThermSensor.DEGREES_F)
             n = float(s) + TEMP_CAL
-        except:
-            logger.error('get_temp exception', exc_info=True)
-            n = "error"
+        # except:
+        #     logger.error('get_temp exception', exc_info=True)
+        #     n = "error"
         return n
 
 # W1_Temp_Sensor and Temper_Temp_sensor are now defined.
@@ -117,39 +117,39 @@ class Dummy_Miner:
 #                                                                            #
 #                                                                            #
 ##############################################################################
-def spond_miner(operation, debug_flag=False):
-
-    result = 0
-
-    try:
-        child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
-        if debug_flag: child.logfile = sys.stdout
-        child.expect('password: ')
-        child.sendline(Spondoolies_miner["pass"])
-        child.expect('SP31-5# ')
-
-        if operation == "status":
-            child.sendline('spond-manager status')
-            child.expect('SP31-5# ')
-            status = child.before
-            if '1' in status:
-                result = "on"
-            else:
-                result = "off"
-
-        elif operation == "start":
-            child.sendline('spond-manager start')
-            child.expect('SP31-5# ')
-
-        elif operation == "stop":
-            child.sendline('spond-manager stop')
-            child.expect('SP31-5# ')
-
-        child.sendline('exit')
-
-    except:
-        logger.error("spond_miner exception", exc_info=True)
-    return result
+# def spond_miner(operation, debug_flag=False):
+#
+#     result = 0
+#
+#     try:
+#         child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
+#         if debug_flag: child.logfile = sys.stdout
+#         child.expect('password: ')
+#         child.sendline(Spondoolies_miner["pass"])
+#         child.expect('SP31-5# ')
+#
+#         if operation == "status":
+#             child.sendline('spond-manager status')
+#             child.expect('SP31-5# ')
+#             status = child.before
+#             if '1' in status:
+#                 result = "on"
+#             else:
+#                 result = "off"
+#
+#         elif operation == "start":
+#             child.sendline('spond-manager start')
+#             child.expect('SP31-5# ')
+#
+#         elif operation == "stop":
+#             child.sendline('spond-manager stop')
+#             child.expect('SP31-5# ')
+#
+#         child.sendline('exit')
+#
+#     except:
+#         logger.error("spond_miner exception", exc_info=True)
+#     return result
 
 ##############################################################################
 #                                                                            #
@@ -160,14 +160,48 @@ def spond_miner(operation, debug_flag=False):
 ##############################################################################
 class Spondoolies_Miner:
 
-    def status(self):
-        return spond_miner("status")
+    def status(self, debug=False):
+        return self.miner_ssh_op("status", debug_flag=debug)
 
-    def start(self):
-        return spond_miner("start")
+    def start(self, debug=False):
+        return self.miner_ssh_op("start", debug_flag=debug)
 
-    def stop(self):
-        return spond_miner("stop")
+    def stop(self, debug=False):
+        return self.miner_ssh_op("stop", debug_flag=debug)
+
+    def miner_ssh_op(self, operation, debug_flag=False):
+
+        result = 0
+
+#        try:
+            child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
+            if debug_flag: child.logfile = sys.stdout
+            child.expect('password: ')
+            child.sendline(Spondoolies_miner["pass"])
+            child.expect('SP31-5# ')
+
+            if operation == "status":
+                child.sendline('spond-manager status')
+                child.expect('SP31-5# ')
+                status = child.before
+                if '1' in status:
+                    result = "on"
+                else:
+                    result = "off"
+
+            elif operation == "start":
+                child.sendline('spond-manager start')
+                child.expect('SP31-5# ')
+
+            elif operation == "stop":
+                child.sendline('spond-manager stop')
+                child.expect('SP31-5# ')
+
+            child.sendline('exit')
+
+#        except:
+#            logger.error("spond_miner exception", exc_info=True)
+        return result
 
 ##############################################################################
 #                                                                            #
@@ -178,8 +212,9 @@ class Spondoolies_Miner:
 ##############################################################################
 class Thermostat:
 
-    def __init__(self, miner):
+    def __init__(self, miner, temp_sensor):
         self.miner = miner
+        self.temp_sensor = temp_sensor
         self.last_event_time = datetime.datetime.now()
 
     def calc_interval(self):
@@ -188,9 +223,9 @@ class Thermostat:
         self.last_event_time = now
         return str(interval).split('.')[0]
 
+    def run(self):
 
-    def check(self, temp):
-
+        temp = self.temp_sensor.get_temp()
         status = self.miner.status()
 
         if status == "on" and temp > TURN_OFF_TEMP:
@@ -208,14 +243,15 @@ class Thermostat:
 #                                                                            #
 #                                                                            #
 ##############################################################################
-def main(miner, temp_sensor, period):
+def main(miner, temp_sensor, period=60):
 
-    thermostat = Thermostat(miner)
+    thermostat = Thermostat(miner, temp_sensor)
 
     while True:
-        temp = temp_sensor.get_temp()
-        if temp != "error":
-            thermostat.check(temp)
+        try:
+            thermostat.run()
+        except:
+             logger.error('thermostat threw exception', exc_info=True)
         time.sleep(period)   # seconds, miner takes at least 30 seconds to respond,
                              # so wait at least that long.
 
@@ -252,7 +288,7 @@ if __name__ == "__main__":
 
         try:
             logger.info('Starting ...')
-            main(Spondoolies_Miner(), default_temp_sensor, 60)
+            main(Spondoolies_Miner(), default_temp_sensor)
 
         except KeyboardInterrupt:
             pass
@@ -267,7 +303,7 @@ if __name__ == "__main__":
     elif sys.argv[1] == "test":
 
 #        try:
-            main(Dummy_Miner(), Dummy_Temp_Sensor(), 1)
+            main(Dummy_Miner(), Dummy_Temp_Sensor(), period=1)
 #        except:
 #            pass
     #
@@ -281,19 +317,19 @@ if __name__ == "__main__":
             print(miner.status())
 
         elif sys.argv[1] == "Status":
-            print(miner("status", debug_flag=True))
+            print(miner.status(debug=True))
 
         elif sys.argv[1] == "start":
             miner.start()
 
         elif sys.argv[1] == "Start":
-            miner("start", debug_flag=True)
+            miner.start(debug=True)
 
         elif sys.argv[1] == "stop":
             miner.stop()
 
         elif sys.argv[1] == "Stop":
-            miner("stop", debug_flag=True)
+            miner.stop(debug=True)
 
         elif sys.argv[1] == "temp":
             print(default_temp_sensor.get_temp())
