@@ -2,6 +2,8 @@ Need to install the pexpect module.
 
 If using the One Wire temperature sensor, you need to install that module.
 
+Be sure to ssh into the miner manually once, to put the public key into knownhosts
+
 If using the Temper USB temperature sensor:
 
 https://github.com/padelt/temper-python
