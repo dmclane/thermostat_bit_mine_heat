@@ -20,4 +20,32 @@ sudo cp 99-tempsensor.rules /etc/udev/rules.d/
 
 reboot
 
+For the Pi:
+
+So it will start, and restart, automatically;
+place scap_back_shutdown.service in /lib/systemd/system/
+
+sudo cp miner_thermostat.service /lib/systemd/system/
+
+Activate with:
+
+sudo systemctl enable miner_thermostat.service
+
+reboot
+
+miner_thermostat.service:
+
+[Unit]
+Description=dadivity activity monitor
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python  /home/pi/thermostat_bit_mine_heat/miner_thermostat.py
+StandardOutput=null
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
 
