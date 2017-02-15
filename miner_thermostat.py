@@ -11,6 +11,7 @@ from local_config import *
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
 TEMPER_TEMP_CAL = -10.0
+W1_TEMP_CAL = -2.0
 
 # these need to be defined before the next import
 
@@ -43,7 +44,7 @@ class W1_Temp_Sensor:
 
     def get_temp(self):
         s = self.sensor.get_temperature(W1ThermSensor.DEGREES_F)
-        n = float(s)
+        n = float(s) + W1_TEMP_CAL
         return n
 
 # W1_Temp_Sensor and Temper_Temp_sensor are now defined.
