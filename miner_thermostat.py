@@ -129,11 +129,11 @@ class Spondoolies_Miner:
         if debug_flag: child.logfile = sys.stdout
         child.expect('password: ')
         child.sendline(Spondoolies_miner["pass"])
-        child.expect('SP31-5# ')
+        child.expect(Spondoolies_miner["prompt"])
 
         if operation == "status":
             child.sendline('spond-manager status')
-            child.expect('SP31-5# ')
+            child.expect(Spondoolies_miner["prompt"])
             status = child.before
             if '1' in status:
                 result = "on"
@@ -142,11 +142,11 @@ class Spondoolies_Miner:
 
         elif operation == "start":
             child.sendline('spond-manager start')
-            child.expect('SP31-5# ')
+            child.expect(Spondoolies_miner["prompt"])
 
         elif operation == "stop":
             child.sendline('spond-manager stop')
-            child.expect('SP31-5# ')
+            child.expect(Spondoolies_miner["prompt"])
 
         child.sendline('exit')
 
