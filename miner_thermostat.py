@@ -44,7 +44,8 @@ class W1_Temp_Sensor:
 
     def get_temp(self):
         s = self.sensor.get_temperature(W1ThermSensor.DEGREES_F)
-        n = float(s) + W1_TEMP_CAL
+        n = "%f2.1" % (s + W1_TEMP_CAL,)
+#        n = float(s) + W1_TEMP_CAL
         return n
 
 # W1_Temp_Sensor and Temper_Temp_sensor are now defined.

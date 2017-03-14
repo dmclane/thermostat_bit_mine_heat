@@ -23,7 +23,7 @@ reboot
 For the Pi:
 
 So it will start, and restart, automatically;
-place scap_back_shutdown.service in /lib/systemd/system/
+place miner_thermostat.service in /lib/systemd/system/
 
 sudo cp miner_thermostat.service /lib/systemd/system/
 
@@ -36,7 +36,7 @@ reboot
 miner_thermostat.service:
 
 [Unit]
-Description=dadivity activity monitor
+Description=miner thermostat
 After=multi-user.target
 
 [Service]
