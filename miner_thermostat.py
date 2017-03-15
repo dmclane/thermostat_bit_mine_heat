@@ -44,8 +44,7 @@ class W1_Temp_Sensor:
 
     def get_temp(self):
         s = self.sensor.get_temperature(W1ThermSensor.DEGREES_F)
-        n = "%f2.1" % (s + W1_TEMP_CAL,)
-#        n = float(s) + W1_TEMP_CAL
+        n = float(s) + W1_TEMP_CAL
         return n
 
 # W1_Temp_Sensor and Temper_Temp_sensor are now defined.
@@ -180,11 +179,11 @@ class Thermostat:
 
         if (status == "on") and (temp > TURN_OFF_TEMP):
             self.miner.stop()
-            logger.info(str(temp) + ", off, " + self.calc_interval())
+            logger.info( "%2.1f" % (temp,) + ", off, " + self.calc_interval())
 
         if (status == "off") and (temp < TURN_ON_TEMP):
             self.miner.start()
-            logger.info(str(temp) + ",  on, " + self.calc_interval())
+            logger.info( "%2.1f" % (temp,) + ",  on, " + self.calc_interval())
 
 ##############################################################################
 #                                                                            #
