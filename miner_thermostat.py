@@ -125,30 +125,45 @@ class Spondoolies_Miner:
 
         result = 0
 
-        child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
-        if debug_flag: child.logfile = sys.stdout
-        child.expect('password: ')
-        child.sendline(Spondoolies_miner["pass"])
-        child.expect(Spondoolies_miner["prompt"])
+        try:
+            child = pexpect.spawn('ssh ' + Spondoolies_miner["user"] + '@' + Spondoolies_miner["ip"])
 
-        if operation == "status":
-            child.sendline('spond-manager status')
-            child.expect(Spondoolies_miner["prompt"])
-            status = child.before
-            if '1' in status:
-                result = "on"
-            else:
-                result = "off"
+        except (KeyboardInterrupt, SystemExit, StopIteration):
+            raise
+        except:
+             logger.error('pexpect.spawn, ' + operation + ' threw exception', exc_info=True)
 
-        elif operation == "start":
-            child.sendline('spond-manager start')
-            child.expect(Spondoolies_miner["prompt"])
+        else:
+            try:
+                if debug_flag: child.logfile = sys.stdout
+                child.expect('password: ', timeout=240)
+                child.sendline(Spondoolies_miner["pass"])
+                child.expect(Spondoolies_miner["prompt"], timeout=240)
 
-        elif operation == "stop":
-            child.sendline('spond-manager stop')
-            child.expect(Spondoolies_miner["prompt"])
+                if operation == "status":
+                    child.sendline('spond-manager status')
+                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+                    status = child.before
+                    if '1' in status:
+                        result = "on"
+                    else:
+                        result = "off"
 
-        child.sendline('exit')
+                elif operation == "start":
+                    child.sendline('spond-manager start')
+                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+
+                elif operation == "stop":
+                    child.sendline('spond-manager stop')
+                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+
+                child.sendline('exit')
+            except (KeyboardInterrupt, SystemExit, StopIteration):
+                raise
+            except:
+                logger.error(operation + ' threw exception', exc_info=True)
+            finally:
+                child.close()
 
         return result
 
@@ -192,7 +207,7 @@ class Thermostat:
 #                                                                            #
 #                                                                            #
 ##############################################################################
-def main(miner, temp_sensor, period=60):
+def main(miner, temp_sensor, period=240):
 
     thermostat = Thermostat(miner, temp_sensor)
 
@@ -223,7 +238,7 @@ if __name__ == "__main__":
     formatter = logging.Formatter('%(levelname)s, %(asctime)s, %(message)s', datefmt="%Y-%m-%d, %H:%M")
 
 
-    file_handler = logging.handlers.RotatingFileHandler('thermostat.log', maxBytes=10000, backupCount=3)
+    file_handler = logging.handlers.RotatingFileHandler(log_dir + 'thermostat.log', maxBytes=100000, backupCount=1)
     file_handler.setLevel(logging.INFO)
     file_handler.setFormatter(formatter)
     logger.addHandler(file_handler)

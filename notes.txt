@@ -23,29 +23,13 @@ reboot
 For the Pi:
 
 So it will start, and restart, automatically;
-place miner_thermostat.service in /lib/systemd/system/
+place bitcoin_thermostat.service in /lib/systemd/system/
 
-sudo cp miner_thermostat.service /lib/systemd/system/
+sudo cp bitcoin_thermostat.service /lib/systemd/system/
 
 Activate with:
 
-sudo systemctl enable miner_thermostat.service
+sudo systemctl enable bitcoin_thermostat.service
 
 reboot
-
-miner_thermostat.service:
-
-[Unit]
-Description=miner thermostat
-After=multi-user.target
-
-[Service]
-Type=idle
-ExecStart=/usr/bin/python  /home/pi/thermostat_bit_mine_heat/miner_thermostat.py
-StandardOutput=null
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-
 
