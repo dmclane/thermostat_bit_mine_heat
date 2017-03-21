@@ -136,6 +136,8 @@ class Spondoolies_Miner:
         else:
             try:
                 if debug_flag: child.logfile = sys.stdout
+                # not sure why it sometimes takes so long to respond, but I've seen it take
+                # more that 3 minutes.
                 child.expect('password: ', timeout=240)
                 child.sendline(Spondoolies_miner["pass"])
                 child.expect(Spondoolies_miner["prompt"], timeout=240)
@@ -190,15 +192,18 @@ class Thermostat:
     def run(self):
 
         temp = self.temp_sensor.get_temp()
-        status = self.miner.status()
+        if (temp < TURN_ON_TEMP) or (temp > TURN_OFF_TEMP):
+            # don't need to query miner if temp is within range
 
-        if (status == "on") and (temp > TURN_OFF_TEMP):
-            self.miner.stop()
-            logger.info( "%2.1f" % (temp,) + ", off, " + self.calc_interval())
+            status = self.miner.status()
 
-        if (status == "off") and (temp < TURN_ON_TEMP):
-            self.miner.start()
-            logger.info( "%2.1f" % (temp,) + ",  on, " + self.calc_interval())
+            if (status == "on") and (temp > TURN_OFF_TEMP):
+                self.miner.stop()
+                logger.info( "%2.1f" % (temp,) + ", off, " + self.calc_interval())
+
+            if (status == "off") and (temp < TURN_ON_TEMP):
+                self.miner.start()
+                logger.info( "%2.1f" % (temp,) + ",  on, " + self.calc_interval())
 
 ##############################################################################
 #                                                                            #
@@ -207,7 +212,7 @@ class Thermostat:
 #                                                                            #
 #                                                                            #
 ##############################################################################
-def main(miner, temp_sensor, period=240):
+def main(miner, temp_sensor, period=120):
 
     thermostat = Thermostat(miner, temp_sensor)
 
