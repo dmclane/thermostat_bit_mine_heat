@@ -6,56 +6,16 @@ import pexpect
 import logging
 import logging.handlers
 import datetime
+from w1_gpio_therm import W1_Gpio_Therm
+from timos_lib import W1_Temp_Sensor
 from local_config import *
 
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
-TEMPER_TEMP_CAL = -10.0
-W1_TEMP_CAL = -2.0
 
-# these need to be defined before the next import
-
-##############################################################################
-#                                                                            #
-#                                                                            #
-#                 Temper_Temp_Sensor class                                   #
-#                                                                            #
-#                                                                            #
-##############################################################################
-
-class Temper_Temp_Sensor:
-    def get_temp(self):
-        s = subprocess.check_output(["temper-poll", "-f"])
-        n = float(s) + TEMPER_TEMP_CAL
-        return n
-
-##############################################################################
-#                                                                            #
-#                                                                            #
-#                     One Wire Temperature Sensor class                      #
-#                                                                            #
-#                                                                            #
-##############################################################################
-
-class W1_Temp_Sensor:
-
-    def __init__(self):
-        self.sensor = W1ThermSensor()
-
-    def get_temp(self):
-        s = self.sensor.get_temperature(W1ThermSensor.DEGREES_F)
-        n = float(s) + W1_TEMP_CAL
-        return n
-
-# W1_Temp_Sensor and Temper_Temp_sensor are now defined.
-# Presense of One Wire module determines what sensor we're using.
-
-try:
-    from w1thermsensor import W1ThermSensor
-    default_temp_sensor = W1_Temp_Sensor()
-except ImportError:
-    default_temp_sensor = Temper_Temp_Sensor()
-
+#default_temp_sensor = W1_Temp_Sensor()
+#default_temp_sensor = Temper_Temp_Sensor()
+default_temp_sensor = W1_Gpio_Therm()
 
 ##############################################################################
 #                                                                            #
