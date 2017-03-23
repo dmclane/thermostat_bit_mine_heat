@@ -72,6 +72,10 @@ class Dummy_Miner:
 ##############################################################################
 class Spondoolies_Miner:
 
+    # not sure why it sometimes takes so long to respond, but I've seen it take
+    # more that 3 minutes.
+    TIME_OUT = 300
+
     def status(self, debug=False):
         return self.miner_ssh_op("status", debug_flag=debug)
 
@@ -96,15 +100,13 @@ class Spondoolies_Miner:
         else:
             try:
                 if debug_flag: child.logfile = sys.stdout
-                # not sure why it sometimes takes so long to respond, but I've seen it take
-                # more that 3 minutes.
-                child.expect('password: ', timeout=240)
+                child.expect('password: ', timeout=self.TIME_OUT)
                 child.sendline(Spondoolies_miner["pass"])
-                child.expect(Spondoolies_miner["prompt"], timeout=240)
+                child.expect(Spondoolies_miner["prompt"], timeout=self.TIME_OUT)
 
                 if operation == "status":
                     child.sendline('spond-manager status')
-                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+                    child.expect(Spondoolies_miner["prompt"], timeout=self.TIME_OUT)
                     status = child.before
                     if '1' in status:
                         result = "on"
@@ -113,11 +115,11 @@ class Spondoolies_Miner:
 
                 elif operation == "start":
                     child.sendline('spond-manager start')
-                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+                    child.expect(Spondoolies_miner["prompt"], timeout=self.TIME_OUT)
 
                 elif operation == "stop":
                     child.sendline('spond-manager stop')
-                    child.expect(Spondoolies_miner["prompt"], timeout=240)
+                    child.expect(Spondoolies_miner["prompt"], timeout=self.TIME_OUT)
 
                 child.sendline('exit')
             except (KeyboardInterrupt, SystemExit, StopIteration):
