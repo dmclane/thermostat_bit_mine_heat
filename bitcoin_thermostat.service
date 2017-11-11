@@ -1,0 +1,16 @@
+[Unit]
+Description=miner thermostat
+After=multi-user.target
+
+[Service]
+Type=idle
+User=pi
+WorkingDirectory=/home/pi/thermostat_bit_mine_heat
+ExecStart=/usr/bin/python  /home/pi/thermostat_bit_mine_heat/miner_thermostat.py
+StandardOutput=null
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+
