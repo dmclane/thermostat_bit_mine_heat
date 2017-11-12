@@ -8,15 +8,19 @@ import logging
 import logging.handlers
 import datetime
 from w1_gpio_therm import W1_Gpio_Therm
-from timos_lib import W1_Temp_Sensor
+try:
+    from timos_lib import W1_Temp_Sensor
+except: pass
 from local_config import *
 
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
 
-#default_temp_sensor = W1_Temp_Sensor()
-#default_temp_sensor = Temper_Temp_Sensor()
-default_temp_sensor = W1_Gpio_Therm()
+try:
+    #default_temp_sensor = W1_Temp_Sensor()
+    #default_temp_sensor = Temper_Temp_Sensor()
+    default_temp_sensor = W1_Gpio_Therm()
+except: pass
 
 ##############################################################################
 #                                                                            #
