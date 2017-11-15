@@ -1,14 +1,11 @@
 
 import sys
 import base_miner
+import pexpect
 from pexpect import pxssh
 from local_config import *
 
-test_user = "root"
-test_password = "admin"
-test_ip_address = "192.168.17.20"
-#test_ip_address = "192.168.17.209"
-test_prompt = "~# "
+test_miner = localhost_test
 
 ##############################################################################
 #                                                                            #
@@ -19,11 +16,11 @@ test_prompt = "~# "
 ##############################################################################
 class Antminer(base_miner.Base_Miner):
 
-    def __init__(self, user, password, ip_address, prompt):
-        self.user = user
-        self.password = password
-        self.ip_address = ip_address
-        self.prompt = prompt
+    def __init__(self, miner):
+        self.user = miner["user"]
+        self.password = miner["pass"]
+        self.ip_address = miner["ip"]
+        self.prompt = miner["prompt"]
         self.TIME_OUT = 30
 
     def status(self, debug=False):
@@ -36,6 +33,49 @@ class Antminer(base_miner.Base_Miner):
         return self.miner_ssh_op("stop", debug_flag=debug)
 
     def miner_ssh_op(self, operation, debug_flag=False):
+
+        result = 0
+
+        try:
+            child = pexpect.spawn('ssh ' + self.user + '@' + self.ip_address, timeout=self.TIME_OUT) 
+
+            if debug_flag: child.logfile = sys.stdout
+            child.expect('password: ')
+            child.sendline(self.password)
+            child.expect(self.prompt)
+            child.sendline('ls /sbin/monitorcg')
+            index = child.expect(['/sbin/monitorcg', 'ls: '])
+            if index == 1:
+                child.expect(self.prompt)
+                child.sendline('rm /sbin/monitorcg')
+                child.expect(self.prompt)
+                child.sendline('killall monitorcg')
+                child.expect(self.prompt)
+
+            if operation == "status":
+                pass
+
+            elif operation == "start":
+                child.sendline('/etc/init.d/cgminer.sh start')
+                child.expect(self.prompt)
+
+            elif operation == "stop":
+                child.sendline('/etc/init.d/cgminer.sh stop')
+                child.expect(self.prompt)
+
+            child.sendline('exit')
+            child.expect(pexpect.EOF)
+        except (KeyboardInterrupt, SystemExit, StopIteration):
+            raise
+#            except:
+#                logger.error(operation + ' threw exception', exc_info=True)
+        finally:
+            child.close()
+
+        return result
+
+
+    def miner_pxssh_op(self, operation, debug_flag=False):
 
         result = 0
 
@@ -105,6 +145,6 @@ class Antminer(base_miner.Base_Miner):
 
 if __name__ == "__main__":
 
-    miner = Antminer(test_user, test_password, test_ip_address, test_prompt)
+    miner = Antminer(test_miner)
     miner.miner_ssh_op("", debug_flag=True)
 
