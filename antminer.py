@@ -80,7 +80,6 @@ class Antminer(base_miner.Base_Miner):
         result = 0
 
         try:
-#            child = pexpect.spawn('ssh ' + self.user + '@' + self.ip_address, timeout=self.TIME_OUT) 
             session = pxssh.pxssh()
 
         except (KeyboardInterrupt, SystemExit, StopIteration):
@@ -93,21 +92,10 @@ class Antminer(base_miner.Base_Miner):
 
         else:
             try:
-#                if debug_flag: child.logfile = sys.stdout
                 if debug_flag: session.logfile = sys.stdout
-#                child.expect('password: ')
-#                child.sendline(self.password)
-#                child.expect(self.prompt)
-#                child.sendline('ls /sbin/monitorcg')
                 session.sendline('ls /sbin/monitorcg')
-#                index = child.expect(['/sbin/monitorcg', 'ls: /sbin/monitorcg: No such file or directory'])
                 index = session.expect(['/sbin/monitorcg', 'ls: /sbin/monitorcg: No such file or directory'])
                 if index == 0:
-#                    child.expect(self.prompt)
-#                    child.sendline('rm /sbin/monitorcg')
-#                    child.expect(self.prompt)
-#                    child.sendline('killall monitorcg')
-#                    child.expect(self.prompt)
                     session.prompt()
                     session.sendline('rm /sbin/monitorcg')
                     session.expect(self.prompt)
@@ -120,25 +108,18 @@ class Antminer(base_miner.Base_Miner):
                     pass
 
                 elif operation == "start":
-#                    child.sendline('/etc/init.d/cgminer.sh start')
-#                    child.expect(self.prompt)
                     session.sendline('/etc/init.d/cgminer.sh start')
                     session.prompt()
 
                 elif operation == "stop":
-#                    child.sendline('/etc/init.d/cgminer.sh stop')
-#                    child.expect(self.prompt)
                     session.sendline('/etc/init.d/cgminer.sh stop')
                     session.prompt()
 
-#                child.sendline('exit')
-#                child.expect(pexpect.EOF)
             except (KeyboardInterrupt, SystemExit, StopIteration):
                 raise
 #            except:
 #                logger.error(operation + ' threw exception', exc_info=True)
             finally:
-#                child.close()
                 session.logout()
 
         return result
@@ -146,5 +127,19 @@ class Antminer(base_miner.Base_Miner):
 if __name__ == "__main__":
 
     miner = Antminer(test_miner)
-    miner.miner_ssh_op("", debug_flag=True)
+    if len(sys.argv) == 1:
+        miner.miner_ssh_op("", debug_flag=True)
+
+    elif sys.argv[1] == "pxssh":
+        print("pxssh arg")
+
+    elif sys.argv[1] == "status":
+        print("status arg")
+
+    elif sys.argv[1] == "start":
+        print("start arg")
+
+    elif sys.argv[1] == "stop":
+        print("stop arg")
+
 
