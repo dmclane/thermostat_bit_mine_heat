@@ -12,6 +12,8 @@ try:
     from timos_lib import W1_Temp_Sensor
 except: pass
 from local_config import *
+import spondoolies_miner
+import antminer
 
 TURN_OFF_TEMP = 70.0
 TURN_ON_TEMP = 68.0
@@ -21,6 +23,9 @@ try:
     #default_temp_sensor = Temper_Temp_Sensor()
     default_temp_sensor = W1_Gpio_Therm()
 except: pass
+
+controlled_miner = Antminer_S7_1
+controlled_miner_class = antminer.Antminer
 
 ##############################################################################
 #                                                                            #
@@ -154,7 +159,7 @@ if __name__ == "__main__":
 
         try:
             logger.info('Starting ...')
-            main(Spondoolies_Miner(), default_temp_sensor)
+            main(controlled_miner_class(controlled_miner), default_temp_sensor)
 
         except KeyboardInterrupt:
             pass
@@ -169,14 +174,17 @@ if __name__ == "__main__":
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(formatter)
         logger.addHandler(console_handler)
-        main(Dummy_Miner(), Dummy_Temp_Sensor(), period=1)
+        try:
+            main(Dummy_Miner(), Dummy_Temp_Sensor(), period=1)
+        except StopIteration:
+            pass
 
     else:
         #
         #  other test routines.
         #    
 
-        miner = Spondoolies_Miner()
+        miner = controlled_miner_class(controlled_miner)
 
         if sys.argv[1] == "status":
             print(miner.status())

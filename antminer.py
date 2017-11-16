@@ -48,10 +48,6 @@ class Antminer(base_miner.Base_Miner):
             child.expect(self.prompt)
             child.sendline('ls /sbin/monitorcg')
             index = child.expect(['ls: ', '/sbin/monitorcg'])
-            print(child.before)
-            print child.match
-            print(child.after)
-            print index
             if index == 1:
                 child.expect(self.prompt)
                 child.sendline('rm /sbin/monitorcg')
