@@ -7,8 +7,10 @@ from pexpect import pxssh
 from local_config import *
 
 localhost_test = {"ip":"localhost", "user":"dmclane", "pass":"", "prompt":"\$ "}
-test_miner = Antminer_S7_1
-#test_miner = localhost_test
+try:
+    test_miner = Antminer_S7_1
+except:
+    test_miner = localhost_test
 
 ##############################################################################
 #                                                                            #
