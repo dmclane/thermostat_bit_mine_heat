@@ -1,3 +1,4 @@
+#! /usr/bin/python
 
 import sys
 import base_miner
@@ -59,7 +60,13 @@ class Antminer(base_miner.Base_Miner):
             child.expect(self.prompt)
 
             if operation == "status":
-                pass
+                child.sendline('cgminer-api stats')
+                index = child.expect(['Reply', 'Socket connect failed'])
+                if index == 0:
+                    result = 'on'
+                else:
+                    result = 'off'
+                child.expect(self.prompt)
 
             elif operation == "start":
                 child.sendline('/etc/init.d/cgminer.sh start')
@@ -127,7 +134,8 @@ if __name__ == "__main__":
         miner.miner_pxssh_op("", debug_flag=True)
 
     elif sys.argv[1] == "status":
-        print("status arg")
+        result = miner.miner_ssh_op("status", debug_flag=True)
+        print result
 
     elif sys.argv[1] == "start":
         miner.miner_ssh_op("start", debug_flag=True)
