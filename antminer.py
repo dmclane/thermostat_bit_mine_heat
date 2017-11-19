@@ -60,20 +60,32 @@ class Antminer(base_miner.Base_Miner):
             child.expect(self.prompt)
 
             if operation == "status":
-                child.sendline('cgminer-api stats')
-                index = child.expect(['Reply', 'Socket connect failed'])
+#                child.sendline('cgminer-api stats')
+#                index = child.expect(['Reply', 'Socket connect failed'])
+#                if index == 0:
+#                    result = 'on'
+#                else:
+#                    result = 'off'
+                child.sendline("cgminer-api stats |grep frequency] |awk '{print $3}'")
+                index = child.expect(['100', self.prompt])
                 if index == 0:
-                    result = 'on'
-                else:
                     result = 'off'
-                child.expect(self.prompt)
+                    child.expect(self.prompt)
+                else:
+                    result = 'on'
 
             elif operation == "start":
-                child.sendline('/etc/init.d/cgminer.sh start')
+#                child.sendline('/etc/init.d/cgminer.sh start')
+                child.sendline('cp /config/cgminer.conf.0 /config/cgminer.conf')
+                child.expect(self.prompt)
+                child.sendline('/etc/init.d/cgminer.sh restart')
                 child.expect(self.prompt)
 
             elif operation == "stop":
-                child.sendline('/etc/init.d/cgminer.sh stop')
+#                child.sendline('/etc/init.d/cgminer.sh stop')
+                child.sendline('cp /config/cgminer.conf.idle /config/cgminer.conf')
+                child.expect(self.prompt)
+                child.sendline('/etc/init.d/cgminer.sh restart')
                 child.expect(self.prompt)
 
             child.sendline('exit')
